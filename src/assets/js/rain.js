@@ -1,0 +1,67 @@
+const initRain = () => {
+    const canvas = document.querySelector('.rain');
+    const c = canvas.getContext('2d');
+    let animationId;
+    let running = false;
+    
+    const resizeCanvas = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    };
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    const randomNum = (min, max) => Math.random() * (max - min) + min;
+    
+    class RainDrop {
+        constructor(width, height) {
+            this.width = width;
+            this.height = height;
+            this.reset();
+        }
+    
+        reset() {
+            this.x = randomNum(0, this.width);
+            this.y = randomNum(-500, 0);
+            this.length = randomNum(1.5, 8);
+            this.velocity = randomNum(0.2, 20);
+            this.opacity = randomNum(0.1, 0.55);
+        }
+    
+        draw() {
+            c.beginPath();
+            c.moveTo(this.x, this.y);
+            c.lineTo(this.x, this.y + this.length);
+            c.lineWidth = 1;
+            c.strokeStyle = `rgba(255, 255, 255, ${this.opacity})`;
+            c.stroke();
+        }
+    
+        update() {
+            this.y += this.velocity;
+            if (this.y > this.height) this.reset();
+            this.draw();
+        }
+    }
+    
+    const rainArray = Array.from({ length: 140 }, () => new RainDrop(canvas.width, canvas.height));
+    
+    const animateRain = () => {
+        if (!running) return;
+        animationId = requestAnimationFrame(animateRain);
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        rainArray.forEach(drop => drop.update());
+    };
+    
+    running = true;
+    animateRain();
+    
+    return () => {
+        running = false;
+        window.removeEventListener('resize', resizeCanvas);
+        cancelAnimationFrame(animationId);
+    };
+};
+
+export default initRain;
